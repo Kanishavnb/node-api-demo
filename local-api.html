@@ -1,0 +1,161 @@
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body {
+    background-color: #f0f4ff;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 0;
+  }
+  .menu {
+    background-color: darkblue;
+    padding: 12px;
+  }
+  .menu a {
+    color: white;
+    margin: 0 12px;
+    text-decoration: none;
+    font-size: 18px;
+  }
+  h1 {
+    color: darkblue;
+  }
+  .box {
+    background-color: white;
+    max-width: 320px;
+    margin: 10px auto;
+    padding: 15px;
+    border-radius: 10px;
+  }
+  input {
+    padding: 10px;
+    font-size: 16px;
+    width: 90%;
+    margin: 5px 0;
+    box-sizing: border-box;
+  }
+  button {
+    background-color: darkblue;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    margin: 5px;
+  }
+  #status {
+    color: green;
+    font-size: 18px;
+    margin: 15px;
+    padding: 0 15px;
+  }
+  .card {
+    background-color: white;
+    margin: 10px auto;
+    padding: 12px;
+    width: 300px;
+    border-radius: 8px;
+    text-align: left;
+  }
+  .card h3 {
+    margin: 0 0 5px 0;
+    color: darkblue;
+  }
+  .card p {
+    margin: 3px 0;
+  }
+  @media (max-width: 600px) {
+    .menu a {
+      font-size: 14px;
+      margin: 0 6px;
+    }
+    h1 {
+      font-size: 24px;
+    }
+    .card {
+      width: 80%;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="menu">
+  <a href="index.html">Home</a>
+  <a href="todo.html">To-Do</a>
+  <a href="calculator.html">Calculator</a>
+  <a href="quiz.html">Quiz</a>
+</div>
+<h1>Users from my own server</h1>
+
+<div class="box">
+  <input id="name" placeholder="Name">
+  <input id="skill" placeholder="Skill">
+  <br>
+  <button onclick="addUser()">Add user</button>
+</div>
+
+<button onclick="loadUsers()">Load users</button>
+<p id="status"></p>
+<div id="users"></div>
+
+<script>
+  var API = "http://localhost:3000/api/users";
+
+  async function loadUsers() {
+    var status = document.getElementById("status");
+    var box = document.getElementById("users");
+    status.innerText = "Loading...";
+    box.innerHTML = "";
+
+    try {
+      var response = await fetch(API);
+      var users = await response.json();
+
+      for (var i = 0; i < users.length; i++) {
+        var card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML =
+          "<h3>" + users[i].name + "</h3>" +
+          "<p>Skill: " + users[i].skill + "</p>";
+        box.appendChild(card);
+      }
+      status.innerText = "Loaded " + users.length + " users from my server";
+    } catch (error) {
+      status.innerText = "Could not reach the server. Is it running?";
+    }
+  }
+
+  async function addUser() {
+    var status = document.getElementById("status");
+    var name = document.getElementById("name").value.trim();
+    var skill = document.getElementById("skill").value.trim();
+
+    if (name === "" || skill === "") {
+      status.innerText = "Please enter a name and a skill.";
+      return;
+    }
+
+    try {
+      var response = await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name, skill: skill })
+      });
+
+      if (!response.ok) {
+        status.innerText = "The server rejected that data.";
+        return;
+      }
+
+      document.getElementById("name").value = "";
+      document.getElementById("skill").value = "";
+      await loadUsers();
+    } catch (error) {
+      status.innerText = "Could not reach the server. Is it running?";
+    }
+  }
+</script>
+<script src="theme.js"></script>
+</body>
+</html>
